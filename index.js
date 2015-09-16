@@ -8,17 +8,15 @@ var through = require('through');
 var Index = require('./lib/Index');
 var Matcher = require('./lib/Matcher');
 
-var modelIndex = new Index();
-var modelMatcher = new Matcher(modelIndex);
-
-var manufIndex = new Index();
-var manufMatcher = new Matcher(manufIndex);
+var index = new Index();
+var matcher = new Matcher(index);
 
 var overallImported = 0;
 var importElapsed = hr();
 fs
     .createReadStream('./data/productNames.txt')
     .pipe(split())
+    .pipe(cutStream(25000))
     .pipe(through(function write(line) {
         var parts = line.split('\t');
 
@@ -28,11 +26,11 @@ fs
             artid: parseInt(parts[2], 10)
         });
     }))
-    .pipe(cutStream(10000))
     .pipe(through(function write(data) {
         overallImported++;
-        modelIndex.feed(data.model, data);
-        manufIndex.feed(data.manufacturer, data);
+        (data.manufacturer + ' ' + data.model).split(' ').forEach(function(word) {
+            index.feed(word, data);
+        });
     }, function() {
         console.log('index took %d ms', importElapsed(hr.MS));
         console.log('imported %d entries', overallImported);
@@ -48,22 +46,26 @@ fs
     }));
 
 function match(term) {
+    console.log('====================================================================================');
     console.log('searchTerm: ' + term);
     console.log('-------------------------------------------------');
 
-    var elapsedManufResult = hr();
-    var manufResult = manufMatcher.match(term);
-    var manufEvaled = manufResult.calculate();
-    console.log('manufMatch took: ' + elapsedManufResult());
+    term
+        .toLowerCase()
+        .split(' ').forEach(function(word) {
+        console.log('\nmatching for %s', word);
 
-    var elapsedModelResult = hr();
-    var modelResult = modelMatcher.match(term);
-    var modelEvaled = modelResult.calculate();
-    console.log('modelMatch took: ' + elapsedModelResult());
+        var elapsedResult = hr();
+        var result = matcher.match(word);
+        console.log('match took: ' + elapsedResult());
 
-    console.log(manufEvaled);
-    console.log(modelEvaled);
-    console.log('-------------------------------------------------');
+        var evalResult = hr();
+        var evald = result.calculate();
+        console.log('eval took: ' + evalResult());
+
+        console.log('overall %d results of varying quality', evald.length);
+        console.log(evald);
+    });
 }
 
 function cutStream(number) {
