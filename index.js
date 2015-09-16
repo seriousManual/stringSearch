@@ -1,4 +1,4 @@
-var repl = require("repl");
+var readline = require('readline');
 var fs = require('fs');
 
 var hr = require('hirestime');
@@ -10,6 +10,9 @@ var Matcher = require('./lib/Matcher');
 
 var modelIndex = new Index();
 var modelMatcher = new Matcher(modelIndex);
+
+var manufIndex = new Index();
+var manufMatcher = new Matcher(manufIndex);
 
 var overallImported = 0;
 var importElapsed = hr();
@@ -25,32 +28,41 @@ fs
             artid: parseInt(parts[2], 10)
         });
     }))
-    .pipe(cutStream(1000))
+    .pipe(cutStream(10000))
     .pipe(through(function write(data) {
         overallImported++;
-        modelIndex.feed(data.manufacturer + ' ' + data.model);
+        modelIndex.feed(data.model, data);
+        manufIndex.feed(data.manufacturer, data);
     }, function() {
         console.log('index took %d ms', importElapsed(hr.MS));
         console.log('imported %d entries', overallImported);
 
-        var replServer = repl.start({
-            prompt: 'sweetSearch > '
+        var rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
         });
 
-        replServer.context.match = match;
+        rl.on('line', function (cmd) {
+            match(cmd);
+        });
     }));
 
 function match(term) {
     console.log('searchTerm: ' + term);
-    var elapsedResult = hr();
-    var result = modelMatcher.match(term);
-    console.log('match took: ' + elapsedResult());
+    console.log('-------------------------------------------------');
 
-    var elapsedEval = hr();
-    var evald = result.calculate();
-    console.log('eval took: ' + elapsedEval());
+    var elapsedManufResult = hr();
+    var manufResult = manufMatcher.match(term);
+    var manufEvaled = manufResult.calculate();
+    console.log('manufMatch took: ' + elapsedManufResult());
 
-    console.log(evald);
+    var elapsedModelResult = hr();
+    var modelResult = modelMatcher.match(term);
+    var modelEvaled = modelResult.calculate();
+    console.log('modelMatch took: ' + elapsedModelResult());
+
+    console.log(manufEvaled);
+    console.log(modelEvaled);
     console.log('-------------------------------------------------');
 }
 
