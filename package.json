@@ -1,0 +1,16 @@
+{
+  "name": "hyphertest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "hirestime": "^1.0.3",
+    "split": "^1.0.0",
+    "through": "^2.3.8"
+  }
+}

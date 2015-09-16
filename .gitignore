@@ -1,0 +1,4 @@
+.idea
+data/productNames.txt
+data/productNamesSmall.txt
+node_modules
