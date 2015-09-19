@@ -14,7 +14,7 @@ var matcher = new Matcher(index);
 var overallImported = 0;
 var importElapsed = hr();
 fs
-    .createReadStream('./data/productNames.txt')
+    .createReadStream('./data/productNamesSmall.txt')
     .pipe(split())
     .pipe(cutStream(25000))
     .pipe(through(function write(line) {
