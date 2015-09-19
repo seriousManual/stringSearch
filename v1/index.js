@@ -5,6 +5,7 @@ var hr = require('hirestime');
 var split = require('split');
 var through = require('through');
 
+var cutStream = require('./lib/cutstream');
 var Index = require('./lib/Index');
 var Matcher = require('./lib/Matcher');
 
@@ -14,9 +15,9 @@ var matcher = new Matcher(index);
 var overallImported = 0;
 var importElapsed = hr();
 fs
-    .createReadStream('./data/productNamesSmall.txt')
+    .createReadStream('./data/productNames.txt')
     .pipe(split())
-    .pipe(cutStream(25000))
+    //.pipe(cutStream(50000))
     .pipe(through(function write(line) {
         var parts = line.split('\t');
 
@@ -52,28 +53,18 @@ function match(term) {
 
     term
         .toLowerCase()
-        .split(' ').forEach(function(word) {
-        console.log('\nmatching for %s', word);
+        .split(' ').forEach(function (word) {
+            console.log('\nmatching for %s', word);
 
-        var elapsedResult = hr();
-        var result = matcher.match(word);
-        console.log('match took: ' + elapsedResult());
+            var elapsedResult = hr();
+            var result = matcher.match(word);
+            console.log('match took: ' + elapsedResult());
 
-        var evalResult = hr();
-        var evald = result.calculate();
-        console.log('eval took: ' + evalResult());
+            var evalResult = hr();
+            var evald = result.calculate();
+            console.log('eval took: ' + evalResult());
 
-        console.log('overall %d results of varying quality', evald.length);
-        console.log(evald);
-    });
-}
-
-function cutStream(number) {
-    var i = 0;
-
-    return through(function write(entry) {
-        if (i++ < number) {
-            this.emit('data', entry);
-        }
-    });
+            console.log('overall %d results of varying quality', evald.length);
+            console.log(evald);
+        });
 }
