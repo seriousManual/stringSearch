@@ -1,13 +1,12 @@
 var hr = require('hirestime');
 
-var splitter = require('./../splitter');
+var splitter = require('../lib/tools/splitter');
 
 function work(term) {
     term = term.toLowerCase();
     term = term.replace(/\s/g, '');
 
     var parts = splitter(term, 2);
-    parts.sort();
 
     return parts;
 }
@@ -20,6 +19,7 @@ function work(term) {
 
 var set1 = work('22" byzance heavy ride');
 var set2 = work('heavy ride');
+console.log(set2);
 
 var intersection = set1.filter(function(chunk) {
     return set2.indexOf(chunk) != -1;
